@@ -33,22 +33,27 @@ from ruuvitag_sensor.ruuvi import RuuviTagSensor
 
 
 def convert_to_influx(mac, payload):
-    return {
-        "measurement": "ruuvitag",
-        "tags": {
-            "mac": mac
-        },
-        "fields": {
-            "temperature": payload["temperature"],
-            "humidity": payload["humidity"],
-            "pressure": payload["pressure"]
-        }
-    }
+    json_body = []
+    for field in ['temperature', 'humidity', 'pressure']:
+        json_body.append({
+            "measurement": field,
+            "tags": {
+                "mac": mac,
+                "protocolVersion": 3,
+            },
+            "fields": {
+                "value": payload[field]
+            }
+        })
 
+    return json_body
 
-client = InfluxDBClient(host="localhost", port=8086, database="tag_data")
+client = InfluxDBClient(host="localhost", port=8086, database="ruuvi")
 
 while True:
     datas = RuuviTagSensor.get_data_for_sensors()
-    json_body = [convert_to_influx(mac, payload) for mac, payload in datas.items()]
+    json_body = []
+    for mac, payload in datas.items():
+        json_body.extend(convert_to_influx(mac, payload))
+    # print("would write",json_body)
     client.write_points(json_body)

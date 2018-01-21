@@ -7,23 +7,22 @@ Check guide and requirements from post_to_influxdb.py
 from influxdb import InfluxDBClient
 from ruuvitag_sensor.ruuvi_rx import RuuviTagReactive
 
-client = InfluxDBClient(host="localhost", port=8086, database="tag_data")
+client = InfluxDBClient(host="localhost", port=8086, database="ruuvi")
 
 
 def write_to_influxdb(received_data):
-    json_body = [
-        {
-            "measurement": "ruuvitag",
+    json_body = []
+    for field in ['temperature', 'humidity', 'pressure']:
+        json_body.append({
+            "measurement": field,
             "tags": {
-                "mac": received_data[0]
+                "mac": received_data[0],
+                "protocolVersion": 3,
             },
             "fields": {
-                "temperature": received_data[1]["temperature"],
-                "humidity": received_data[1]["humidity"],
-                "pressure": received_data[1]["pressure"]
+                "value": received_data[1][field]
             }
-        }
-    ]
+        })
 
     client.write_points(json_body)
 
