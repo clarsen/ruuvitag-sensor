@@ -31,6 +31,9 @@ Add new graph to dashboard
 from influxdb import InfluxDBClient
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
 
+import requests
+HEALTHCHECK_URL = "https://hchk.io/<your_healthcheck_id>"
+
 
 client = InfluxDBClient(host='localhost', port=8086, database='ruuvi')
 
