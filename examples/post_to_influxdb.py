@@ -31,10 +31,18 @@ Add new graph to dashboard
 from influxdb import InfluxDBClient
 from ruuvitag_sensor.ruuvi import RuuviTagSensor
 
+import requests
+HEALTHCHECK_URL = "https://hchk.io/<your_healthcheck_id>"
+
 
 def convert_to_influx(mac, payload):
     json_body = []
-    for field in ['temperature', 'humidity', 'pressure']:
+    for field in ['temperature', 'humidity', 'pressure', 'battery']:
+        if field == 'battery':
+            value = payload[field]/1000.0
+            field = 'batteryVoltage'
+        else:
+            value = payload[field]
         json_body.append({
             "measurement": field,
             "tags": {
@@ -42,7 +50,7 @@ def convert_to_influx(mac, payload):
                 "protocolVersion": 3,
             },
             "fields": {
-                "value": payload[field]
+                "value": value
             }
         })
 
@@ -54,6 +62,12 @@ while True:
     datas = RuuviTagSensor.get_data_for_sensors()
     json_body = []
     for mac, payload in datas.items():
+        print("got",payload)
         json_body.extend(convert_to_influx(mac, payload))
-    # print("would write",json_body)
+    print("would write",json_body)
     client.write_points(json_body)
+    try:
+        requests.get(HEALTHCHECK_URL)
+    except:
+        pass
+
