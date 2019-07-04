@@ -34,7 +34,6 @@ from ruuvitag_sensor.ruuvi import RuuviTagSensor
 import requests
 HEALTHCHECK_URL = "https://hchk.io/<your_healthcheck_id>"
 
-
 client = InfluxDBClient(host='localhost', port=8086, database='ruuvi')
 
 def write_to_influxdb(received_data):
